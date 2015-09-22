@@ -16,9 +16,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.firebase.client.Firebase;
 
 
-public class MainActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener, CommunityFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener, CommunityFragment.OnFragmentInteractionListener, ReportFragment.OnFragmentInteractionListener {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
@@ -28,6 +29,10 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // intialize Firebase Libary
+        //Firebase.setAndroidContext(this);
+
 
         // Set a Toolbar to replace the ActionBar.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -39,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
 
         // Set the menu icon instead of the launcher icon.
         final ActionBar ab = getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.mipmap.ic_menu);
+        ab.setHomeAsUpIndicator(R.drawable.ic_menu_2);
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Find our drawer view
@@ -93,6 +98,9 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
                 break;
             case R.id.nav_second_fragment:
                 fragmentClass = CommunityFragment.class;
+                break;
+            case R.id.nav_third_fragment:
+                fragmentClass = ReportFragment.class;
                 break;
             default:
                 fragmentClass = MapFragment.class;

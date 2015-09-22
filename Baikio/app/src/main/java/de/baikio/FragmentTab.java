@@ -31,6 +31,7 @@ public class FragmentTab extends Fragment {
         {
             Log.d("INFO", "hahah");
 
+
         }
         return v;
     }

@@ -1,28 +1,54 @@
 package de.baikio;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTabHost;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 
-public class MainActivity extends FragmentActivity {
-    private FragmentTabHost mTabHost;
+
+public class MainActivity extends AppCompatActivity {
+    private DrawerLayout mDrawer;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-        mTabHost = (FragmentTabHost) findViewById(android.R.id.tabhost);
-        mTabHost.setup(this, getSupportFragmentManager(), android.R.id.tabcontent);
 
-        mTabHost.addTab(
-                mTabHost.newTabSpec("tab1").setIndicator("Tab 1", null),
-                FragmentTab.class, null);
-        mTabHost.addTab(
-                mTabHost.newTabSpec("tab2").setIndicator("Tab 2", null),
-                FragmentTab.class, null);
-        mTabHost.addTab(
-                mTabHost.newTabSpec("tab3").setIndicator("Tab 3", null),
-                FragmentTab.class, null);
+        // Set a Toolbar to replace the ActionBar.
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Find our drawer view
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        // Set the menu icon instead of the launcher icon.
+        final ActionBar ab = getSupportActionBar();
+        ab.setHomeAsUpIndicator(R.mipmap.ic_menu);
+        ab.setDisplayHomeAsUpEnabled(true);
+
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // The action bar home/up action should open or close the drawer.
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                mDrawer.openDrawer(GravityCompat.START);
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+    }
+
+
 }

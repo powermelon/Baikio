@@ -16,6 +16,9 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -38,6 +41,7 @@ public class ReportFragment extends Fragment {
 
     private Firebase myFirebaseRef;
     private long _reportCount;
+    private int next;
 
     private EditText reportText;
     private EditText damageText;
@@ -100,8 +104,13 @@ public class ReportFragment extends Fragment {
                 damageText= (EditText) mView.findViewById(R.id.damageLevelText);
                 LocationText= (EditText) mView.findViewById(R.id.locationText);
 
+                //defaultreport: that we get the number of reports we need to activate the onDataChange listener
+
+                SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss");
+                String format = s.format(new Date());
+
                 report nReport = new report(reportText.getText().toString(), LocationText.getText().toString(), damageText.getText().toString());
-                String reportName = "report" + Integer.toString(NextReportNumber());
+                String reportName = "report" + format;
                 myFirebaseRef.child(reportName).setValue(nReport);
 
                 reportText.setText("");
@@ -155,18 +164,21 @@ public class ReportFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+
     }
 
 
     public int NextReportNumber() {
 
         myFirebaseRef.addValueEventListener(new ValueEventListener() {
+
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 _reportCount = snapshot.getChildrenCount();
                 System.out.println("There are " + (int)_reportCount + " reports");
 
                 for (DataSnapshot reportSnapshot: snapshot.getChildren()) {
+                    next++;
                     report xReport = reportSnapshot.getValue(report.class);
                     System.out.println(xReport.get_Title() + " - " + xReport.get_Location() + " - " + xReport.get_damageType());
                 }
@@ -179,7 +191,22 @@ public class ReportFragment extends Fragment {
 
         int next = (int)_reportCount;
         System.out.println("next number will be" + next++);
-        return  next++;
+        return  next;
+    }
+    public void getReports(){
+        myFirebaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                System.out.println(snapshot.getValue());
+                _reportCount = snapshot.getChildrenCount();
+                _reportCount ++;
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                System.out.println("The read failed: " + firebaseError.getMessage());
+            }
+        });
+
     }
 
 

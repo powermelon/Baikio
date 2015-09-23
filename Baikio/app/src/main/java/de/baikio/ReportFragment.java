@@ -9,8 +9,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 
 /**
@@ -30,6 +34,14 @@ public class ReportFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private View mView;
+
+    private Firebase myFirebaseRef;
+    private long _reportCount;
+
+    private EditText reportText;
+    private EditText damageText;
+    private EditText LocationText;
 
     private OnFragmentInteractionListener mListener;
 
@@ -64,7 +76,7 @@ public class ReportFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-        //Firebase myFirebaseRef = new Firebase("https://baikio.firebaseio.com/");
+        myFirebaseRef = new Firebase("https://baikio.firebaseio.com/reports");
 
 
         // other setup code
@@ -74,24 +86,37 @@ public class ReportFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_report,
+        mView = inflater.inflate(R.layout.fragment_report,
                 container, false);
 
-        Button button = (Button) view.findViewById(R.id.button);
+        Button button = (Button) mView.findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                Log.d("NOW", "FUCK YOU");
+
+                reportText= (EditText) mView.findViewById(R.id.reportText);
+                damageText= (EditText) mView.findViewById(R.id.damageLevelText);
+                LocationText= (EditText) mView.findViewById(R.id.locationText);
+
+                report nReport = new report(reportText.getText().toString(), LocationText.getText().toString(), damageText.getText().toString());
+                String reportName = "report" + Integer.toString(NextReportNumber());
+                myFirebaseRef.child(reportName).setValue(nReport);
+
+                reportText.setText("");
+                damageText.setText("");
+                LocationText.setText("");
             }
         });
 
 
 
         // Inflate the layout for this fragment
-        return view;
+        return mView;
     }
+
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
@@ -133,6 +158,29 @@ public class ReportFragment extends Fragment {
     }
 
 
+    public int NextReportNumber() {
+
+        myFirebaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                _reportCount = snapshot.getChildrenCount();
+                System.out.println("There are " + (int)_reportCount + " reports");
+
+                for (DataSnapshot reportSnapshot: snapshot.getChildren()) {
+                    report xReport = reportSnapshot.getValue(report.class);
+                    System.out.println(xReport.get_Title() + " - " + xReport.get_Location() + " - " + xReport.get_damageType());
+                }
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                System.out.println("The read failed: " + firebaseError.getMessage());
+            }
+        });
+
+        int next = (int)_reportCount;
+        System.out.println("next number will be" + next++);
+        return  next++;
+    }
 
 
 }

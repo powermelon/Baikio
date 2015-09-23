@@ -3,8 +3,6 @@ package de.baikio;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
-
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
@@ -24,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private View mView;
+    private MenuItem mPreviousMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
         setContentView(R.layout.activity_main);
 
         // intialize Firebase Libary
-        //Firebase.setAndroidContext(this);
+        Firebase.setAndroidContext(this);
 
 
         // Set a Toolbar to replace the ActionBar.
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
 
         // Set the menu icon instead of the launcher icon.
         final ActionBar ab = getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.ic_menu_2);
+        ab.setHomeAsUpIndicator(R.mipmap.ic_menu);
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Find our drawer view
@@ -80,6 +79,14 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
+                        menuItem.setCheckable(true);
+                        menuItem.setChecked(true);
+
+                        if (mPreviousMenuItem != null) {
+                            mPreviousMenuItem.setChecked(false);
+                        }
+                        mPreviousMenuItem = menuItem;
+
                         selectDrawerItem(menuItem);
                         return true;
                     }

@@ -4,11 +4,13 @@ package de.baikio;
 
 
 
+import android.content.Intent;
 import android.net.Uri;
 
 
 import android.support.v4.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 
 import android.view.ViewGroup;
@@ -84,8 +86,6 @@ public class MapFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-
-
     }
 
     @Override
@@ -130,6 +130,8 @@ public class MapFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 actionA.setTitle("Action A clicked");
+                Log.d("INFO", "A pressed");
+                Intent intent = new Intent(getActivity(), CreateReportActivity.class);
             }
         });
 

@@ -18,6 +18,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ShowReportsFragment"
+            android:label="@string/title_activity_show_reports_fragment" >
+        </activity>
+        <activity
+            android:name=".CreateReport"
+            android:label="@string/title_activity_create_report" >
+        </activity>
     </application>
 
 </manifest>

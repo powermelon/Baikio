@@ -2,8 +2,6 @@ package de.baikio;
 
 
 
-
-
 import android.content.Intent;
 import android.net.Uri;
 
@@ -29,17 +27,38 @@ import android.view.View.OnClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.support.v4.app.FragmentActivity;
+import android.os.Bundle;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.*;
+import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.*;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import java.io.IOException;
+import java.util.*;
+import java.text.DateFormat;
 
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link MapFragment.OnFragmentInteractionListener} interface
+ * {@link MapFragmentBaikio.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link MapFragment#newInstance} factory method to
+ * Use the {@link MapFragmentBaikio#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MapFragment extends Fragment {
+public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -55,6 +74,16 @@ public class MapFragment extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+
+    private GoogleApiClient gac;
+    private Location miLocacion;
+    private Button boton;
+    private EditText direccion;
+    private String tiempo;
+    private LocationRequest mLocationRequest;
+    private double latitud, longitud, latitudPedida,longitudPedida;
+    private boolean encontraL,pidiendoUpdateLocacion;
+    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     /**
      * Use this factory method to create a new instance of
@@ -74,7 +103,7 @@ public class MapFragment extends Fragment {
         return fragment;
     }
 
-    public MapFragment() {
+    public MapFragmentBaikio() {
         // Required empty public constructor
     }
 
@@ -86,6 +115,7 @@ public class MapFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
+
     }
 
     @Override
@@ -94,6 +124,7 @@ public class MapFragment extends Fragment {
 
         mView = inflater.inflate(R.layout.fragment_maps,
                 container, false);
+
 
 
         final View actionB = mView.findViewById(R.id.action_b);
@@ -159,8 +190,22 @@ public class MapFragment extends Fragment {
         rightLabels.removeButton(addedTwice);
         rightLabels.addButton(addedTwice);
 */
+//Fragment fm = getFragmentManager().findFragmentById(R.id.map);
+        MapFragment mapfrag = (MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.map);
+
+        // MapFragment mapfrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        //MapFragment mapfrag = (MapFragment) fm;
+        //MapFragment mapfrag_old = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+
+        mapfrag.getMapAsync(this);
+        this.crearGoogleApiClient();
+        this.createLocationRequest();
+
+        this.boton=(Button) mView.findViewById(R.id.button);
+        this.direccion=(EditText) mView.findViewById(R.id.editText);
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_maps, container, false);
+
+        return mView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -200,6 +245,114 @@ public class MapFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+    }
+
+    protected synchronized void crearGoogleApiClient(){
+        this.gac = new GoogleApiClient.Builder(getActivity()).addConnectionCallbacks(this).addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
+        if(this.gac!=null){
+            this.gac.connect();
+        }
+    }
+
+    public void onConnected(Bundle conexion){
+        miLocacion= LocationServices.FusedLocationApi.getLastLocation(this.gac);
+
+        Log.d(this.miLocacion+"", "mi locacion");
+        if(this.miLocacion!=null){
+            this.latitud=this.miLocacion.getLatitude();
+            this.longitud=this.miLocacion.getLongitude();
+            if(this.encontraL==false){
+                this.encontraL=true;
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(this.latitud, this.longitud),14));
+                mMap.addMarker(new MarkerOptions().position(new LatLng(this.latitud,this.longitud)).title("Yo"));
+            }
+
+
+        }
+
+    }
+
+    protected void createLocationRequest() {
+        //this.pidiendoUpdateLocacion=true;
+        this.mLocationRequest = new LocationRequest();
+        this.mLocationRequest.setInterval(10000);
+        this.mLocationRequest.setFastestInterval(5000);
+        this.mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        if(pidiendoUpdateLocacion){
+            this.startLocationUpdates();
+        }
+    }
+
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(this.gac, mLocationRequest, this);
+    }
+
+
+    public void onConnectionSuspended(int x){
+
+    }
+
+    public void onConnectionFailed(ConnectionResult x){
+
+    }
+
+    public void onLocationChanged(Location l){
+        this.miLocacion=l;
+        this.tiempo= DateFormat.getTimeInstance().format(new Date());
+        this.updateUI();
+    }
+
+    private void updateUI() {
+        this.latitud=this.miLocacion.getLatitude();
+        this.longitud=this.miLocacion.getLongitude();
+        /*if(destinoLat==this.latitud && destinoLong==this.longitud){
+            this.stopUpdates();
+        }*/
+    }
+
+    public void stopUpdates(){
+        LocationServices.FusedLocationApi.removeLocationUpdates(this.gac, this);
+    }
+
+    public void onClick(View v){
+        Geocoder code= new Geocoder(getActivity());
+        if(code.isPresent()){
+            Log.d("+++++++","esta entrando a las direccion");
+        }
+        try {
+            Log.d("direccion", this.direccion.getText()+"");
+            List<Address> direcciones = code.getFromLocationName(this.direccion.getText().toString()+",Guadalajara", 5);
+            if(direcciones.size()>0) {
+                Address ubicacion = direcciones.get(0);
+                this.latitudPedida = ubicacion.getLatitude();
+                this.longitudPedida = ubicacion.getLongitude();
+                if (ubicacion != null) {
+                    this.trazar();
+                }
+            }
+
+        }
+        catch (IOException e){
+            Log.d("exception",e.toString() );
+        }
+    }
+
+    public void trazar(){
+        mMap.clear();
+        mMap.addPolyline(new PolylineOptions().geodesic(true)
+                .add(new LatLng(this.latitud, this.longitud))
+                .add(new LatLng(this.latitudPedida, this.longitudPedida)));
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        mMap=map;
+        /*map.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.direction_arrow))
+                .position(this.latitud, this.longitud)
+                .flat(true)
+                .rotation(245));*/
     }
 
 

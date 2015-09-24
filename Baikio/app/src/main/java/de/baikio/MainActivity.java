@@ -17,7 +17,7 @@ import android.view.View;
 import com.firebase.client.Firebase;
 
 
-public class MainActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener, CommunityFragment.OnFragmentInteractionListener, ReportFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements MapFragmentBaikio.OnFragmentInteractionListener, CommunityFragment.OnFragmentInteractionListener, ReportFragment.OnFragmentInteractionListener {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
         Class fragmentClass;
         switch(menuItem.getItemId()) {
             case R.id.nav_first_fragment:
-                fragmentClass = MapFragment.class;
+                fragmentClass = MapFragmentBaikio.class;
                 break;
             case R.id.nav_second_fragment:
                 fragmentClass = CommunityFragment.class;
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
                 fragmentClass = ReportFragment.class;
                 break;
             default:
-                fragmentClass = MapFragment.class;
+                fragmentClass = MapFragmentBaikio.class;
         }
 
         try {

@@ -32,7 +32,6 @@
         android:layout_height="wrap_content"
         android:text="Trace Route"
         android:id="@+id/button"
-        android:onClick="onClick"
         android:layout_below="@+id/editText"
         android:layout_centerHorizontal="true" />
 

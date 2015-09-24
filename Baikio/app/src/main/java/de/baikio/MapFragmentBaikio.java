@@ -8,6 +8,7 @@ import android.net.Uri;
 
 import android.support.v4.app.Fragment;
 
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 
@@ -65,7 +66,7 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
     private static final String ARG_PARAM2 = "param2";
 
 
-    private View mView;
+    private View mViewMap = null;
     private FloatingActionButton fab;
     ListView classListView = null;
 
@@ -85,6 +86,10 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
     private boolean encontraL,pidiendoUpdateLocacion;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
+    private boolean createApiClient = false;
+    private boolean locationRequest = false;
+    private MapFragment mapfrag = null;
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -94,8 +99,8 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
      * @return A new instance of fragment BlankFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static MapFragment newInstance(String param1, String param2) {
-        MapFragment fragment = new MapFragment();
+    public static MapFragmentBaikio newInstance(String param1, String param2) {
+        MapFragmentBaikio fragment = new MapFragmentBaikio();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -115,19 +120,28 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
+/*
+        if(!createApiClient){this.crearGoogleApiClient();}
+        if(!locationRequest){this.createLocationRequest();}
+*/
+        this.crearGoogleApiClient();
+        this.createLocationRequest();
 
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        mView = inflater.inflate(R.layout.fragment_maps,
+/*
+        if(mViewMap == null) {
+            mViewMap = inflater.inflate(R.layout.fragment_maps,
+                    container, false);
+        }
+*/
+        mViewMap = inflater.inflate(R.layout.fragment_maps,
                 container, false);
 
-
-
-        final View actionB = mView.findViewById(R.id.action_b);
+        final View actionB = mViewMap.findViewById(R.id.action_b);
 
         FloatingActionButton actionC = new FloatingActionButton(getActivity());
         actionC.setTitle("Hide/Show Action above");
@@ -138,7 +152,7 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
             }
         });
 
-        final FloatingActionsMenu menuMultipleActions = (FloatingActionsMenu) mView.findViewById(R.id.multiple_actions);
+        final FloatingActionsMenu menuMultipleActions = (FloatingActionsMenu) mViewMap.findViewById(R.id.multiple_actions);
         menuMultipleActions.addButton(actionC);
 
         /*
@@ -156,7 +170,7 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
         ((FloatingActionButton) mView.findViewById(R.id.setter_drawable)).setIconDrawable(drawable);
 
 */
-        final FloatingActionButton actionA = (FloatingActionButton) mView.findViewById(R.id.action_a);
+        final FloatingActionButton actionA = (FloatingActionButton) mViewMap.findViewById(R.id.action_a);
         actionA.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -190,22 +204,32 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
         rightLabels.removeButton(addedTwice);
         rightLabels.addButton(addedTwice);
 */
-//Fragment fm = getFragmentManager().findFragmentById(R.id.map);
-        MapFragment mapfrag = (MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.map);
 
-        // MapFragment mapfrag = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        //MapFragment mapfrag = (MapFragment) fm;
-        //MapFragment mapfrag_old = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        /*
+        if(mapfrag == null) {
+            mapfrag = (MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.map);
+            mapfrag.getMapAsync(this);
+        }
+        */
 
+        mapfrag = (MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.map);
         mapfrag.getMapAsync(this);
-        this.crearGoogleApiClient();
-        this.createLocationRequest();
 
-        this.boton=(Button) mView.findViewById(R.id.button);
-        this.direccion=(EditText) mView.findViewById(R.id.editText);
+
+
+        this.boton=(Button) mViewMap.findViewById(R.id.button);
+
+        boton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getCoordinates(v);
+            }
+        });
+
+        this.direccion=(EditText) mViewMap.findViewById(R.id.editText);
         // Inflate the layout for this fragment
 
-        return mView;
+        return mViewMap;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -232,6 +256,18 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
         mListener = null;
     }
 
+    @Override
+    public void onDestroyView()
+    {
+        super.onDestroyView();
+        Log.d("destroy","view now");
+        this.encontraL = false;
+        MapFragment mapfrag = (MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.map);
+        android.app.FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
+        ft.remove(mapfrag);
+        ft.commit();
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -253,6 +289,7 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
         if(this.gac!=null){
             this.gac.connect();
         }
+        createApiClient = true;
     }
 
     public void onConnected(Bundle conexion){
@@ -262,10 +299,12 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
         if(this.miLocacion!=null){
             this.latitud=this.miLocacion.getLatitude();
             this.longitud=this.miLocacion.getLongitude();
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(this.latitud, this.longitud),14));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(this.latitud,this.longitud)).title("Yo"));
+
             if(this.encontraL==false){
                 this.encontraL=true;
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(this.latitud, this.longitud),14));
-                mMap.addMarker(new MarkerOptions().position(new LatLng(this.latitud,this.longitud)).title("Yo"));
+
             }
 
 
@@ -282,6 +321,7 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
         if(pidiendoUpdateLocacion){
             this.startLocationUpdates();
         }
+        locationRequest = true;
     }
 
     protected void startLocationUpdates() {
@@ -315,7 +355,7 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
         LocationServices.FusedLocationApi.removeLocationUpdates(this.gac, this);
     }
 
-    public void onClick(View v){
+    public void getCoordinates(View v){
         Geocoder code= new Geocoder(getActivity());
         if(code.isPresent()){
             Log.d("+++++++","esta entrando a las direccion");
@@ -347,7 +387,8 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
 
     @Override
     public void onMapReady(GoogleMap map) {
-        mMap=map;
+        mMap = map;
+
         /*map.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.direction_arrow))
                 .position(this.latitud, this.longitud)

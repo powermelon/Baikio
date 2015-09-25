@@ -3,7 +3,9 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">#673AB7</item>
         <item name="colorPrimaryDark">#512DA8</item>
-        <item name="colorAccent">#FF4081</item>
+        <!-- <item name="colorAccent">#FF4081</item> -->
+        <item name="colorAccent">#673AB7</item>
+
     </style>
 
     <style name="menu_labels_style">

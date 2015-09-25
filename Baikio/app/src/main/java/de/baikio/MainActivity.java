@@ -1,5 +1,6 @@
 package de.baikio;
 
+import android.app.FragmentTransaction;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.firebase.client.Firebase;
+import com.google.android.gms.maps.MapFragment;
 
 
 public class MainActivity extends AppCompatActivity implements MapFragmentBaikio.OnFragmentInteractionListener, CommunityFragment.OnFragmentInteractionListener, ReportFragment.OnFragmentInteractionListener {
@@ -118,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements MapFragmentBaikio
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();

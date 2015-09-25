@@ -3,16 +3,13 @@
     android:layout_height="500dp" tools:context="de.baikio.ReportFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView android:layout_width="match_parent" android:layout_height="42dp"
-        android:text="@string/report_fragment"
-        android:id="@+id/textView"></TextView>
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/button"
         android:layout_gravity="center_horizontal"
-        android:text="CLICK ME "
+        android:text="Sent report"
 
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
@@ -22,78 +19,76 @@
         android:layout_height="wrap_content"
         android:id="@+id/reportText"
         android:layout_gravity="center_horizontal"
-        android:layout_below="@+id/textView"
-        android:layout_alignLeft="@+id/button"
-        android:layout_alignStart="@+id/button" />
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="47dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:hint="Enter Name"/>
 
-    <EditText
-        android:layout_width="125dp"
+
+    <RadioGroup
+        android:id="@+id/radioLevel"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/damageLevelText"
-        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="78dp"
         android:layout_below="@+id/reportText"
-        android:layout_alignLeft="@+id/reportText"
-        android:layout_alignStart="@+id/reportText" />
+        android:layout_centerHorizontal="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Report Title:"
-        android:id="@+id/textView2"
-        android:layout_above="@+id/damageLevelText"
-        android:layout_toLeftOf="@+id/reportText"
-        android:layout_toStartOf="@+id/reportText" />
+        <RadioButton
+            android:id="@+id/radioHigh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="High"
+            android:checked="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Damage Level:"
-        android:id="@+id/textView3"
-        android:layout_alignBottom="@+id/damageLevelText"
-        android:layout_toLeftOf="@+id/damageLevelText"
-        android:layout_toStartOf="@+id/damageLevelText" />
+        <RadioButton
+            android:id="@+id/radioMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medium" />
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:id="@+id/descriptionText"
-        android:layout_above="@+id/button"
-        android:layout_alignLeft="@+id/textView2"
-        android:layout_alignStart="@+id/textView2"
-        android:layout_marginBottom="112dp" />
+        <RadioButton
+            android:id="@+id/radioLow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Low" />
+
+    </RadioGroup>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Description:"
-        android:id="@+id/textView4"
-        android:layout_centerVertical="true"
-        android:layout_alignLeft="@+id/descriptionText"
-        android:layout_alignStart="@+id/descriptionText" />
-
-    <EditText
-        android:layout_width="125dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/locationText"
-        android:layout_gravity="center_horizontal"
-        android:layout_below="@+id/damageLevelText"
-        android:layout_alignLeft="@+id/damageLevelText"
-        android:layout_alignStart="@+id/damageLevelText" />
+        android:text="Level"
+        android:id="@+id/textView2"
+        android:layout_alignTop="@+id/radioLevel"
+        android:layout_toLeftOf="@+id/button"
+        android:layout_toStartOf="@+id/button" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Location:"
-        android:id="@+id/textView5"
-        android:layout_alignBottom="@+id/locationText"
-        android:layout_toLeftOf="@+id/locationText"
-        android:layout_toStartOf="@+id/locationText" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Location"
+        android:id="@+id/txtViewLocation"
+        android:layout_marginBottom="32dp"
+        android:layout_above="@+id/button"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_alignStart="@+id/textView2" />
+
+    <EditText
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/edShortDescription"
+        android:layout_gravity="center_horizontal"
+        android:layout_below="@+id/reportText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:hint="short description" />
 
 
 </RelativeLayout>

@@ -15,9 +15,13 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 
-
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
+
 
 import android.app.Activity;
 import android.graphics.drawable.ShapeDrawable;
@@ -37,6 +41,7 @@ import android.os.Bundle;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.games.snapshot.Snapshot;
 import com.google.android.gms.location.*;
 import com.google.android.gms.maps.*;
 import com.google.android.gms.maps.model.*;
@@ -84,12 +89,18 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
     private LocationRequest mLocationRequest;
     private double latitud, longitud, latitudPedida,longitudPedida;
     private boolean encontraL,pidiendoUpdateLocacion;
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
+    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private boolean createApiClient = false;
     private boolean locationRequest = false;
+
+    private boolean onMap = false;
     private MapFragment mapfrag = null;
 
+    private Firebase myFirebaseRef;
+    private Object data;
+
+    private List<report> reports = new ArrayList<>();
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -119,11 +130,15 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        myFirebaseRef = new Firebase("https://baikio.firebaseio.com/reports");
 
 /*
         if(!createApiClient){this.crearGoogleApiClient();}
         if(!locationRequest){this.createLocationRequest();}
+
 */
+
+
         this.crearGoogleApiClient();
         this.createLocationRequest();
 
@@ -138,6 +153,7 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
                     container, false);
         }
 */
+        onMap = true;
         mViewMap = inflater.inflate(R.layout.fragment_maps,
                 container, false);
 
@@ -260,12 +276,14 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
     public void onDestroyView()
     {
         super.onDestroyView();
+        onMap = false;
         Log.d("destroy","view now");
         this.encontraL = false;
         MapFragment mapfrag = (MapFragment) getActivity().getFragmentManager().findFragmentById(R.id.map);
         android.app.FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
         ft.remove(mapfrag);
         ft.commit();
+        mMap = null;
     }
 
     /**
@@ -294,13 +312,18 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
 
     public void onConnected(Bundle conexion){
         miLocacion= LocationServices.FusedLocationApi.getLastLocation(this.gac);
-
+        onMapReady(mapfrag.getMap());
         Log.d(this.miLocacion+"", "mi locacion");
         if(this.miLocacion!=null){
             this.latitud=this.miLocacion.getLatitude();
             this.longitud=this.miLocacion.getLongitude();
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(this.latitud, this.longitud),14));
-            mMap.addMarker(new MarkerOptions().position(new LatLng(this.latitud,this.longitud)).title("Yo"));
+            //Disable Map Toolbar:
+            mMap.getUiSettings().setMapToolbarEnabled(false);
+
+            if(mMap != null) {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(this.latitud, this.longitud), 14));
+                //mMap.addMarker(new MarkerOptions().position(new LatLng(this.latitud, this.longitud)).title("Yo"));
+            }
 
             if(this.encontraL==false){
                 this.encontraL=true;
@@ -389,12 +412,58 @@ public class MapFragmentBaikio extends Fragment implements OnMapReadyCallback, G
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
-        /*map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.direction_arrow))
-                .position(this.latitud, this.longitud)
-                .flat(true)
-                .rotation(245));*/
+        fetchMarkerLocations();
+
     }
 
+    public void fetchMarkerLocations() {
 
+        // Attach an listener to read the data at our posts reference
+        myFirebaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+
+                if(!onMap)
+                {
+                    return;
+                }
+                System.out.println("There are " + snapshot.getChildrenCount() + " reports");
+
+                for (DataSnapshot reportSnapshot: snapshot.getChildren()) {
+                    report myReport = reportSnapshot.getValue(report.class);
+
+                    float color;
+                    String[] geo = myReport.get_Location().split("\\s+");
+
+                    if (myReport.get_damageType().equalsIgnoreCase("High"))
+                    {
+                         color = BitmapDescriptorFactory.HUE_RED;
+                    }
+                    else if (myReport.get_damageType().equalsIgnoreCase("Medium"))
+                    {
+                         color = BitmapDescriptorFactory.HUE_ORANGE;
+                    }
+                    else if (myReport.get_damageType().equalsIgnoreCase("Low"))
+                    {
+                         color = BitmapDescriptorFactory.HUE_YELLOW;
+                    }
+                    else
+                    {
+                        color = BitmapDescriptorFactory.HUE_GREEN;
+                    }
+
+
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(Double.parseDouble(geo[0]), Double.parseDouble(geo[1])))
+                            .icon(BitmapDescriptorFactory.defaultMarker(color))
+                            .title(myReport.get_description())
+                            .snippet("Created by: " + myReport.get_Title() + " Level: " + myReport.get_damageType()));
+                }
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                System.out.println("The read failed: " + firebaseError.getMessage());
+            }
+        });
+    }
 }

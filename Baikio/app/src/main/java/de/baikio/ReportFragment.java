@@ -1,6 +1,7 @@
 package de.baikio;
 
 import android.app.Activity;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,11 +11,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,7 +36,7 @@ import java.util.Date;
  * Use the {@link ReportFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ReportFragment extends Fragment {
+public class ReportFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -44,10 +52,17 @@ public class ReportFragment extends Fragment {
     private int next;
 
     private EditText reportText;
-    private EditText damageText;
-    private EditText LocationText;
+    private TextView location;
+    private EditText description;
 
     private OnFragmentInteractionListener mListener;
+
+    private GoogleApiClient mGoogleApiClient;
+    private Location lastLocation;
+
+
+    private RadioGroup radioLevelGroup;
+    private RadioButton radioLevelButton;
 
     /**
      * Use this factory method to create a new instance of
@@ -81,7 +96,7 @@ public class ReportFragment extends Fragment {
         }
 
         myFirebaseRef = new Firebase("https://baikio.firebaseio.com/reports");
-
+        buildGoogleApiClient();
 
         // other setup code
     }
@@ -93,6 +108,13 @@ public class ReportFragment extends Fragment {
         mView = inflater.inflate(R.layout.fragment_report,
                 container, false);
 
+        reportText= (EditText) mView.findViewById(R.id.reportText);
+        location = (TextView) mView.findViewById(R.id.txtViewLocation);
+        description = (EditText) mView.findViewById(R.id.edShortDescription);
+
+        radioLevelGroup = (RadioGroup) mView.findViewById(R.id.radioLevel);
+
+
         Button button = (Button) mView.findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener()
         {
@@ -100,22 +122,28 @@ public class ReportFragment extends Fragment {
             public void onClick(View v)
             {
 
-                reportText= (EditText) mView.findViewById(R.id.reportText);
-                damageText= (EditText) mView.findViewById(R.id.damageLevelText);
-                LocationText= (EditText) mView.findViewById(R.id.locationText);
-
-                //defaultreport: that we get the number of reports we need to activate the onDataChange listener
 
                 SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss");
                 String format = s.format(new Date());
 
-                report nReport = new report(reportText.getText().toString(), LocationText.getText().toString(), damageText.getText().toString());
+                // get selected radio button from radioGroup
+                int selectedId = radioLevelGroup.getCheckedRadioButtonId();
+
+                // find the radiobutton by returned id
+                radioLevelButton = (RadioButton) mView.findViewById(selectedId);
+
+
+
+                report nReport = new report(reportText.getText().toString(), location.getText().toString(), radioLevelButton.getText().toString(), description.getText().toString());
                 String reportName = "report" + format;
                 myFirebaseRef.child(reportName).setValue(nReport);
 
-                reportText.setText("");
-                damageText.setText("");
-                LocationText.setText("");
+                reportText.setText("Name");
+                description.setText("short description");
+
+
+                Toast.makeText(getActivity(), "Thanks for reporting :)!",
+                        Toast.LENGTH_LONG).show();
             }
         });
 
@@ -149,6 +177,30 @@ public class ReportFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        lastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        Log.d("LOCATION", lastLocation.getLatitude() +" " + lastLocation.getLongitude());
+
+        if (lastLocation != null) {
+            Log.d("LOCATION", lastLocation.getLatitude() +" " + lastLocation.getLongitude());
+            location.setText(String.valueOf(lastLocation.getLatitude()) + " " + String.valueOf(lastLocation.getLongitude()));
+        }
+    }
+
+
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 
     /**
@@ -207,6 +259,19 @@ public class ReportFragment extends Fragment {
             }
         });
 
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        if (mGoogleApiClient != null)
+        {
+            mGoogleApiClient.connect();
+        }
     }
 
 
